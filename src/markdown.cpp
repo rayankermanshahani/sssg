@@ -73,14 +73,34 @@ Post process_file(const std::filesystem::path& pth, const Config& config) {
 
   // check for special features
   post.has_math = post.md.find("$$") != std::string::npos;
-  post.has_math = post.md.find("$$") != std::string::npos;
+  post.has_twitter_embed = post.md.find("<tweet>") != std::string::npos;
+
+  // set output path
+  post.out_pth = config.output_dir / pth.stem().concat("html");
 
   return post;
 }
 
 // block processing
-std::string process_headers(const std::string& block);
-std::string process_math(const std::string& block);
+std::string process_headers(const std::string& block) {
+  std::regex h1_pattern("^# (.+)$");
+  std::regex h2_pattern("^## (.+)$");
+  std::regex h3_pattern("^### (.+)$");
+
+  std::string result = block;
+  result = std::regex_replace(result, h1_pattern, "<h1>$1</h1>");
+  result = std::regex_replace(result, h2_pattern, "<h2>$1</h2>");
+  result = std::regex_replace(result, h3_pattern, "<h3>$1</h3>");
+
+  return result;
+}
+
+// TODO: find good c++17 equivalent of std::string::starts_with() and
+// std::string::ends_with()
+std::string process_math(const std::string& block) {
+  std::string result = block;
+  return result;
+}
 std::string process_blockquote(const std::string& block);
 
 // inline processing
