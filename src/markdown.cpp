@@ -182,10 +182,49 @@ std::string apply_template(const std::string& content, const Post& post) {
   return result;
 }
 
-// TODO: COMPLETE FILE OPS
 // file operations
-std::vector<std::filesystem::path> find_md_files(const Config& config);
-void write_post(const Post& post, const Config& config);
-void write_index(const std::vector<Post>& posts, const Config& config);
+std::vector<std::filesystem::path> find_md_files(const Config& config) {
+  std::vector<std::filesystem::path> md_files;
+
+  for (const auto& entry :
+       std::filesystem::directory_iterator(config.content_dir)) {
+    if (entry.path().extension() == ".md") {
+      md_files.push_back(entry.path());
+    }
+  }
+
+  // sort by filename (containing date) in reverse order
+  std::sort(md_files.begin(), md_files.end(),
+            std::greater<std::filesystem::path>());
+
+  return md_files;
+}
+
+void write_post(const Post& post, const Config& config) {
+  std::filesystem::create_directories(post.out_pth.parent_path());
+
+  std::ofstream out_file(post.out_pth);
+  out_file << apply_template(post.html, post);
+}
+
+void write_index(const std::vector<Post>& posts, const Config& config) {
+  std::string content = "<h1>Writing</h1>\n<ul>\n";
+
+  for (const auto& post : posts) {
+    content += "<li><span class=\"date\">" + post.date + "</span> ";
+    content += "<a href=\"" + post.out_pth.filename().string() + "\">" +
+               post.title + "</a></li>\n";
+  }
+
+  content += "</ul>";
+
+  Post index_post;
+  index_post.title = "Writing";
+  index_post.date = "";
+  index_post.html = content;
+
+  std::ofstream index_file(config.output_dir / "writing.html");
+  index_file << apply_template(content, index_post);
+}
 
 } // namespace md
