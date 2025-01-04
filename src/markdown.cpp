@@ -3,7 +3,6 @@
 #include <fstream>
 #include <regex>
 #include <sstream>
-#include <string_view>
 
 namespace md {
 
@@ -78,6 +77,8 @@ Post process_file(const std::filesystem::path& pth, const Config& config) {
   std::string filename = pth.stem().string();
   if (filename.length() >= 10) {
     post.date = filename.substr(0, 10);
+    // convert YYYY-MM-DD to YYYY/MM/DD format
+    std::replace(post.date.begin(), post.date.end(), '-', '/');
   }
 
   // process md to html
@@ -154,6 +155,7 @@ std::string process_latex(const std::string& text) {
   return std::regex_replace(text, inline_math_pattern,
                             "<span class=\"math\">\\\\($1\\\\)</span>");
 }
+
 std::string process_twitter_embed(const std::string& text) {
   std::regex tweet_pattern("<tweet>(.+?)</tweet>");
   return std::regex_replace(
@@ -162,24 +164,53 @@ std::string process_twitter_embed(const std::string& text) {
       "href=\"https://twitter.com/x/status/$1\"></a></blockquote>");
 }
 
-// template handling
-std::string apply_template(const std::string& content, const Post& post) {
-  // read template file
-  std::ifstream template_file("template.html");
-  std::string templ((std::istreambuf_iterator<char>(template_file)),
-                    std::istreambuf_iterator<char>());
+// generate html
+std::string generate_html(const Post& post) {
+  std::stringstream html;
+  html << "<!DOCTYPE html>\n"
+       << "<html>\n"
+       << "<head>\n"
+       << "    <title>" << post.title << "</title>\n"
+       << "    <meta charset=\"utf-8\">\n"
+       << "    <meta name=\"viewport\" content=\"width=device-width, "
+          "initial-scale=1.0\">\n"
+       << "    <link rel=\"stylesheet\" type=\"text/css\" "
+          "href=\"../../styles/reset.css\" />\n"
+       << "    <link rel=\"stylesheet\" type=\"text/css\" "
+          "href=\"../../styles/writingstyle.css\" />\n";
 
-  // replace placeholders
-  std::regex title_pattern("\\{\\{title\\}\\}");
-  std::regex date_pattern("\\{\\{date\\}\\}");
-  std::regex content_pattern("\\{\\{content\\}\\}");
+  if (post.has_math) {
+    html << "    <script "
+            "src=\"https://cdn.mathjax.org/mathjax/latest/"
+            "MathJax.js?config=TeX-AMS-MML_HTMLorMML\"></script>\n";
+  }
 
-  std::string result = templ;
-  result = std::regex_replace(result, title_pattern, post.title);
-  result = std::regex_replace(result, date_pattern, post.date);
-  result = std::regex_replace(result, content_pattern, content);
+  html << "</head>\n"
+       << "<body>\n"
+       << "    <div id=\"contents\">\n"
+       << "        <br>\n"
+       << "        <br>\n"
+       << "        <br>\n"
+       << "        <div id=\"date\">" << post.date << "</div>\n"
+       << "        <br>\n"
+       << "        <br>\n"
+       << "        <div id=\"title\">" << post.title << "</div>\n"
+       << "        <br>\n"
+       << "        <hr>\n"
+       << "        <br>\n"
+       << "        <br>\n"
+       << post.html << "        <br>\n"
+       << "        <br>\n"
+       << "        <hr>\n"
+       << "        <br>\n"
+       << "        <br>\n"
+       << "        <a href=\"../../writing.html\" id=\"back-link\"> &lt; "
+          "return </a>\n"
+       << "    </div>\n"
+       << "</body>\n"
+       << "</html>";
 
-  return result;
+  return html.str();
 }
 
 // file operations
@@ -202,29 +233,45 @@ std::vector<std::filesystem::path> find_md_files(const Config& config) {
 
 void write_post(const Post& post, const Config& config) {
   std::filesystem::create_directories(post.out_pth.parent_path());
-
   std::ofstream out_file(post.out_pth);
-  out_file << apply_template(post.html, post);
+  out_file << generate_html(post);
 }
 
 void write_index(const std::vector<Post>& posts, const Config& config) {
-  std::string content = "<h1>Writing</h1>\n<ul>\n";
+  std::stringstream html;
+
+  html << "<!DOCTYPE html>\n"
+       << "<html>\n"
+       << "<head>\n"
+       << "    <title>Writing</title>\n"
+       << "    <meta charset=\"utf-8\">\n"
+       << "    <meta name=\"viewport\" content=\"width=device-width, "
+          "initial-scale=1.0\">\n"
+       << "    <link rel=\"stylesheet\" type=\"text/css\" "
+          "href=\"styles/reset.css\" />\n"
+       << "    <link rel=\"stylesheet\" type=\"text/css\" "
+          "href=\"styles/writingstyle.css\" />\n"
+       << "</head>\n"
+       << "<body>\n"
+       << "    <div id=\"contents\">\n"
+       << "        <br><br><br>\n"
+       << "        <div id=\"title\">Writing</div>\n"
+       << "        <br><hr><br><br>\n"
+       << "        <ul>\n";
 
   for (const auto& post : posts) {
-    content += "<li><span class=\"date\">" + post.date + "</span> ";
-    content += "<a href=\"" + post.out_pth.filename().string() + "\">" +
-               post.title + "</a></li>\n";
+    html << "            <li><span class=\"date\">" << post.date
+         << "</span> <a href=\"writing/" << post.out_pth.filename().string()
+         << "\">" << post.title << "</a></li>\n";
   }
 
-  content += "</ul>";
+  html << "        </ul>\n"
+       << "    </div>\n"
+       << "</body>\n"
+       << "</html>";
 
-  Post index_post;
-  index_post.title = "Writing";
-  index_post.date = "";
-  index_post.html = content;
-
-  std::ofstream index_file(config.output_dir / "writing.html");
-  index_file << apply_template(content, index_post);
+  std::ofstream index_file(config.root_dir / "writing.html");
+  index_file << html.str();
 }
 
 } // namespace md

@@ -15,7 +15,7 @@ struct Post {
 struct Config {
   std::filesystem::path content_dir;
   std::filesystem::path output_dir;
-  std::filesystem::path template_dir;
+  std::filesystem::path root_dir;
 };
 
 // core markdown processing functions
@@ -38,8 +38,8 @@ std::string process_images(const std::string& text);
 std::string process_latex(const std::string& text);
 std::string process_twitter_embed(const std::string& text);
 
-// template handling
-std::string apply_template(const std::string& content, const Post& post);
+// html generation
+std::string generate_html(const Post& post);
 
 // file operations
 std::vector<std::filesystem::path> find_md_files(const Config& config);
