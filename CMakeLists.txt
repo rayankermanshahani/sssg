@@ -17,28 +17,15 @@ add_executable(sssg
 target_include_directories(sssg PRIVATE src)
 
 # compiler warnings
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  target_compile_options(sssg PRIVATE -Wall -Wextra -Wpedantic)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(sssg PRIVATE /W4)
-endif()
+target_compile_options(sssg PRIVATE -Wall -Wextra -Wpedantic)
 
 # compiler optimizations
 if (CMAKE_BUILD_TYPE MATCHES Release)
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(sssg PRIVATE -O3 -march=native -ffast-math -flto)
-    target_link_options(sssg PRIVATE -flto)
-  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(sssg PRIVATE /O2 /GL)
-    target_link_options(sssg PRIVATE /LTCG)
-  endif()
+  target_compile_options(sssg PRIVATE -O3 -march=native -ffast-math -flto)
+  target_link_options(sssg PRIVATE -flto)
 else()
   # debug build settings
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(sssg PRIVATE -g)
-  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(sssg PRIVATE /DEBUG)
-  endif()
+  target_compile_options(sssg PRIVATE -g)
 endif()
 
 # installation configuration

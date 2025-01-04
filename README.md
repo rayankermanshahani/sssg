@@ -1,58 +1,88 @@
 # sssg - A Simple Static Site Generator
 
-### Project Structure:
-```
-sssg/
-├── src/
-│   ├── main.cpp        # entry point + CLI + main program flow
-│   ├── markdown.hpp    # markdown processing functions + data structures
-│   └── markdown.cpp    # implementation of markdown processing
-└── CMakeLists.txt      # build configuration
+sssg is a lightweight static site generator that converts markdown files into consistently formatted HTML files. It is a command line tool designed to be simple to use and integrate into your existing website workflow.
+
+> **Note:** sssg is designed for Unix-like systems (MacOS, Linux) only. 
+
+
+### Features
+- converts markdown files to HTML
+- supports math equations using MathJax
+- handles twitter embeds
+- generates an index page of all converted files (ie. articles)
+- maintains consistent styling across all generated pages
+
+
+### Prerequisites
+- [CMake](https://cmake.org/) (version 3.10 or higher)
+- C++ compiler with C++17 support
+- Git (for cloning this repository)
+
+
+### Installation
+1. Clone this repository:
+```bash
+clone https://github.com/rayankermanshahani/sssg.git && cd sssg
 ```
 
-### Installation (Manual):
-1. Clone directory
-```
-git clone https://github.com/rayankermanshahani/sssg && cd sssg
-```
-2. Build executable
-```
+2. Create build directory and build the project:
+```bash
 mkdir build && cd build
-cmake ..
-```
-3. Compile program
-```
-# unix
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
+```
 
-# windows
-cmake --build . --config Release
-```
-4. Run executable
-```
-# unix
-./sssg build
-
-# windows
-.\Release\sssg.exe build
-```
-5. Install globally (optional)
-```
-# unix only
+3. Install the executable globally:
+```bash
 sudo make install
 ```
 
-### Uninstall Instructions (Manual):
-1. Remove global installation (if installed)
+### Uninstallation
+1. Delete the cloned `sssg/` directory:
+```bash
+cd ..       # assuming you are inside the sssg directory
+rm -rf sssg # may require sudo privileges
 ```
-# unix only
-sudo make uninstall
+2. Remove the executable binary file:
+```bash
+rm $(which sssg) # may require sudo privileges
+rm -rf 
 ```
-2. Remove local files
+
+
+### Usage Instructions
+```bash
+sssg -h
 ```
-# from project root
-rm -rf build/  # remove build directory
-cd ..          # navigate back to project directory
-rm -rf sssg/   # remove project directory
+
+
+### Expected Directory Structure
+sssg expects the following directory structure by default, unless you specify otherwise via its command line arguments:
 ```
+website/
+├── content/         # Your markdown files go here
+├── styles/          # CSS files
+│   ├── reset.css
+│   └── writingstyle.css
+└── writing/         # Generated HTML files will be placed here
+```
+
+### Markdown File Format
+Your markdown files should follow this format:
+```markdown
+# Title of Your Post
+
+Content goes here...
+
+You can use standard markdown syntax:
+- **bold**
+- *italic*
+- [link title](https://example.com)
+- ![image alt text](path/to/image.jpg)
+
+Math equations: $x^2 + y^2 = z^2$
+
+Twitter embeds: <tweet>tweet_id</tweet>
+```
+
 
