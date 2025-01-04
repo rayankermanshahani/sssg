@@ -6,18 +6,19 @@
 
 void print_usage() {
   std::cout << "Usage: sssg [OPTIONS]\n"
-            << "\nOptions:\n"
-            << "      --root DIR     Website root directory (DEFAULT: .)\n"
-            << "  -i, --input DIR    Input directory containing markdown files "
-               "(DEFAULT content/)\n"
-            << "  -o, --output DIR   Output directory for generated HTML "
-               "(DEFAULT writing/)\n"
-            << "  -h, --help         Show this help message\n"
             << "\nDescription:\n"
             << "  sssg is a simple static site generator that converts "
-               "markdown files into consistently formatted HTML files";
+               "markdown files into consistently\n"
+            << "  formatted HTML files\n"
+            << "\nOptions:\n"
+            << "      --root DIR        Website root directory (default: .)\n"
+            << "  -i, --input DIR       Input directory for markdown files "
+               "(default: content)\n"
+            << "  -o, --output DIR      Output directory for generated HTML "
+               "(default: writing)\n"
+            << "  -h, --help            Show this help message and exit\n"
+            << std::endl;
 }
-
 Config parse_args(int argc, char* argv[]) {
   Config config;
   config.root_dir = std::filesystem::current_path(); // default root directory
@@ -98,7 +99,7 @@ int main(int argc, char* argv[]) {
     // find all markdown files
     auto md_files = md::find_md_files(config);
     if (md_files.empty()) {
-      std::cout << "No makrdown files found in " << config.content_dir << "\n";
+      std::cout << "No markdown files found in " << config.content_dir << "\n";
       return 0;
     }
 
@@ -117,7 +118,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Site generation complete.\n"
               << "Processed " << posts.size() << " posts\n";
   } catch (const std::exception& e) {
-    std::cerr << "Error: " << e.what() << "\n";
+    std::cerr << "Error: " << e.what() << "\n\n";
     print_usage();
     return 1;
   }

@@ -41,6 +41,8 @@ else()
   endif()
 endif()
 
-# optional: add install rules
-install(TARGETS sssg DESTINATION bin)
-
+# installation configuration
+include(GNUInstallDirs)
+install(TARGETS sssg 
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT sssg_runtime)

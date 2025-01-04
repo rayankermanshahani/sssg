@@ -89,7 +89,7 @@ Post process_file(const std::filesystem::path& pth, const Config& config) {
   post.has_twitter_embed = post.md.find("<tweet>") != std::string::npos;
 
   // set output path
-  post.out_pth = config.output_dir / pth.stem().concat("html");
+  post.out_pth = config.output_dir / pth.stem().concat(".html");
 
   return post;
 }
