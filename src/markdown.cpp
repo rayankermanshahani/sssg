@@ -1,6 +1,7 @@
 #include "markdown.hpp"
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <regex>
 #include <sstream>
 
@@ -9,11 +10,6 @@ namespace md {
 static bool starts_with(const std::string& str, const std::string& prefix) {
   return str.size() >= prefix.size() &&
          str.compare(0, prefix.size(), prefix) == 0;
-}
-
-static bool ends_with(const std::string& str, const std::string& suffix) {
-  return str.size() >= suffix.size() &&
-         str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
 // process markdown to html content
@@ -35,8 +31,8 @@ std::string to_html(const std::string& md) {
         processed = process_math(processed);
         processed = process_blockquote(processed);
         processed = process_emphasis(processed);
+        processed = process_images(processed);
         processed = process_links(processed);
-        processed = process_latex(processed);
         processed = process_twitter_embed(processed);
 
         result += processed + "\n<br>\n<br>\n";
@@ -58,9 +54,8 @@ std::string to_html(const std::string& md) {
     processed = process_math(processed);
     processed = process_blockquote(processed);
     processed = process_emphasis(processed);
-    processed = process_links(processed);
     processed = process_images(processed);
-    processed = process_latex(processed);
+    processed = process_links(processed);
     processed = process_twitter_embed(processed);
 
     result += processed;
@@ -97,7 +92,8 @@ Post process_file(const std::filesystem::path& pth, const Config& config) {
   post.html = to_html(post.md);
 
   // check for special features
-  post.has_math = post.md.find("$$") != std::string::npos;
+  post.has_math = post.md.find("$$") != std::string::npos ||
+                  post.md.find("$") != std::string::npos;
   post.has_twitter_embed = post.md.find("<tweet>") != std::string::npos;
 
   // set output path
@@ -121,12 +117,24 @@ std::string process_headers(const std::string& block) {
   return result;
 }
 
-std::string process_math(const std::string& block) {
-  if (block.size() >= 4 && starts_with(block, "$$") && ends_with(block, "$$")) {
-    std::string math = block.substr(2, block.length() - 4);
-    return "<div class=\"math\">\\[" + math + "\\]</div>";
+std::string process_math(const std::string& text) {
+  std::string result = text;
+
+  try {
+    // handle block math ($$...$$)
+    std::regex block_pattern("\\$\\$([^$].*?)\\$\\$");
+    result = std::regex_replace(result, block_pattern, "\n$$\n$1\n$$\n");
+
+    // handle inline math ($...$), but not if it's part of a block ($$)
+    std::regex inline_pattern("\\$([^$]+?)\\$");
+    result = std::regex_replace(result, inline_pattern, "\\($1\\)");
+
+  } catch (const std::regex_error& e) {
+    std::cout << "Regex error in process_math: " << e.what() << std::endl;
+    return text;
   }
-  return block;
+
+  return result;
 }
 
 std::string process_blockquote(const std::string& block) {
@@ -163,12 +171,6 @@ std::string process_images(const std::string& text) {
 }
 
 // special elements
-std::string process_latex(const std::string& text) {
-  std::regex inline_math_pattern("\\$(.+?)\\$");
-  return std::regex_replace(text, inline_math_pattern,
-                            "<span class=\"math\">\\\\($1\\\\)</span>");
-}
-
 std::string process_twitter_embed(const std::string& text) {
   std::regex tweet_pattern("<tweet>(.+?)</tweet>");
   return std::regex_replace(
