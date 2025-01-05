@@ -46,7 +46,6 @@ rm -rf sssg # may require sudo privileges
 2. Remove the executable binary file:
 ```bash
 rm $(which sssg) # may require sudo privileges
-rm -rf 
 ```
 
 

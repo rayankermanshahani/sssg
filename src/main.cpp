@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     for (const auto& file : md_files) {
       std::cout << "Processing: " << file.filename() << "\n";
       Post post = md::process_file(file, config);
-      md::write_post(post, config);
+      md::write_post(post);
       posts.push_back(post);
     }
 

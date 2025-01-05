@@ -43,7 +43,7 @@ std::string generate_html(const Post& post);
 
 // file operations
 std::vector<std::filesystem::path> find_md_files(const Config& config);
-void write_post(const Post& post, const Config& config);
+void write_post(const Post& post);
 void write_index(const std::vector<Post>& posts, const Config& config);
 
 } // namespace md

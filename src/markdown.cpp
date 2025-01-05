@@ -22,37 +22,49 @@ std::string to_html(const std::string& md) {
 
   // split into blocks (double newline)
   std::istringstream stream(md);
-  std::string block;
+  std::string line;
   std::string result;
   std::string current_block;
 
-  while (std::getline(stream, block)) {
-    if (block.empty()) {
+  while (std::getline(stream, line)) {
+    if (line.empty()) {
       if (!current_block.empty()) {
         // process accumulated block
-        result += process_headers(current_block);
-        result += process_math(current_block);
-        result += process_blockquote(current_block);
+        std::string processed = current_block;
+        processed = process_headers(processed);
+        processed = process_math(processed);
+        processed = process_blockquote(processed);
+        processed = process_emphasis(processed);
+        processed = process_links(processed);
+        processed = process_latex(processed);
+        processed = process_twitter_embed(processed);
+
+        result += processed + "\n<br>\n<br>\n";
         current_block.clear();
       }
       continue;
     }
-    current_block += block + "\n";
+    if (current_block.empty()) {
+      current_block = line;
+    } else {
+      current_block += "\n" + line;
+    }
   }
 
   // process any remaining blocks
   if (!current_block.empty()) {
-    result += process_headers(current_block);
-    result += process_math(current_block);
-    result += process_blockquote(current_block);
-  }
+    std::string processed = current_block;
+    processed = process_headers(processed);
+    processed = process_math(processed);
+    processed = process_blockquote(processed);
+    processed = process_emphasis(processed);
+    processed = process_links(processed);
+    processed = process_images(processed);
+    processed = process_latex(processed);
+    processed = process_twitter_embed(processed);
 
-  // process inline elements
-  result = process_emphasis(result);
-  result = process_links(result);
-  result = process_images(result);
-  result = process_latex(result);
-  result = process_twitter_embed(result);
+    result += processed;
+  }
 
   return result;
 }
@@ -96,11 +108,12 @@ Post process_file(const std::filesystem::path& pth, const Config& config) {
 
 // block processing
 std::string process_headers(const std::string& block) {
+  std::string result = block;
+
   std::regex h1_pattern("^# (.+)$");
   std::regex h2_pattern("^## (.+)$");
   std::regex h3_pattern("^### (.+)$");
 
-  std::string result = block;
   result = std::regex_replace(result, h1_pattern, "<h1>$1</h1>");
   result = std::regex_replace(result, h2_pattern, "<h2>$1</h2>");
   result = std::regex_replace(result, h3_pattern, "<h3>$1</h3>");
@@ -145,7 +158,7 @@ std::string process_links(const std::string& text) {
 }
 
 std::string process_images(const std::string& text) {
-  std::regex img_pattern("!\\[(.+?)\\]\\((.+?)\\)");
+  std::regex img_pattern("!\\[([^\\]]*)\\]\\(([^\\)]*)\\)");
   return std::regex_replace(text, img_pattern, "<img src=\"$2\" alt=\"$1\">");
 }
 
@@ -175,9 +188,9 @@ std::string generate_html(const Post& post) {
        << "    <meta name=\"viewport\" content=\"width=device-width, "
           "initial-scale=1.0\">\n"
        << "    <link rel=\"stylesheet\" type=\"text/css\" "
-          "href=\"../../styles/reset.css\" />\n"
+          "href=\"../styles/reset.css\" />\n"
        << "    <link rel=\"stylesheet\" type=\"text/css\" "
-          "href=\"../../styles/writingstyle.css\" />\n";
+          "href=\"../styles/writingstyle.css\" />\n";
 
   if (post.has_math) {
     html << "    <script "
@@ -231,7 +244,7 @@ std::vector<std::filesystem::path> find_md_files(const Config& config) {
   return md_files;
 }
 
-void write_post(const Post& post, const Config& config) {
+void write_post(const Post& post) {
   std::filesystem::create_directories(post.out_pth.parent_path());
   std::ofstream out_file(post.out_pth);
   out_file << generate_html(post);
