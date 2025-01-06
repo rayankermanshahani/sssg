@@ -35,7 +35,7 @@ std::string to_html(const std::string& md) {
         processed = process_links(processed);
         processed = process_twitter_embed(processed);
 
-        result += processed + "\n<br>\n<br>\n";
+        result += "<p>" + processed + "</p>\n" + "\n<br>\n<br>\n";
         current_block.clear();
       }
       continue;
@@ -78,6 +78,14 @@ Post process_file(const std::filesystem::path& pth, const Config& config) {
   std::string first_ln = post.md.substr(0, post.md.find('\n'));
   if (starts_with(first_ln, "# ")) {
     post.title = first_ln.substr(2);
+
+    // remove that line from the markdown, so it doesn't show up again as a
+    // header
+    std::size_t pos = post.md.find('\n');
+    if (pos != std::string::npos) {
+      // this chops off the first line plus the newline
+      post.md = post.md.substr(pos + 1);
+    }
   }
 
   // extract date from filename (assuming YYYY-MM-DD-title.md)
