@@ -169,8 +169,10 @@ std::string process_twitter_embed(const std::string& text) {
   std::regex tweet_pattern("<tweet>(.+?)</tweet>");
   return std::regex_replace(
       text, tweet_pattern,
-      "<blockquote class=\"twitter-tweet\"><a "
-      "href=\"https://twitter.com/x/status/$1\"></a></blockquote>");
+      "<blockquote class=\"twitter-tweet\" data-media-max-width=\"560\"><a "
+      "href=\"https://twitter.com/x/status/$1\"></a></blockquote>\n<script "
+      "async src=\"https://platform.twitter.com/widgets.js\" "
+      "charset=\"utf-8\"></script>");
 }
 
 // generate html
