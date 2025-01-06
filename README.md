@@ -87,7 +87,14 @@ You can use standard markdown syntax:
 - [link title](https://example.com)
 - ![image alt text](path/to/image.jpg)
 
-Math equations: $x^2 + y^2 = z^2$
+Inline math equations: $x^2 + y^2 = z^2$
+
+Multiline math equations: 
+
+$$
+x^2 + y^2 = z^2\\
+2 + 2 = 4
+$$
 
 Twitter embeds: <tweet>tweet_id</tweet>
 ```
