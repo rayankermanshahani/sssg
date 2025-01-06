@@ -56,14 +56,20 @@ sssg -h
 
 
 ### Expected Directory Structure
-sssg expects the following directory structure by default, unless you specify otherwise via its command line arguments:
+sssg expects the following directory structure by default, unless you specify otherwise via its command line arguments. Markdown file names must be preceded by a date in YYYY-MM-DD format:
 ```
 website/
 ├── content/         # Your markdown files go here
+│   ├── YYYY-MM-DD-article_1.md
+│   ├── YYYY-MM-DD-article_2.md
+│   └── YYYY-MM-DD-article_n.md
 ├── styles/          # CSS files
 │   ├── reset.css
 │   └── writingstyle.css
 └── writing/         # Generated HTML files will be placed here
+    ├── YYYY-MM-DD-article_1.html
+    ├── YYYY-MM-DD-article_2.html
+    └── YYYY-MM-DD-article_n.html
 ```
 
 ### Markdown File Format

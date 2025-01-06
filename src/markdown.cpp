@@ -120,19 +120,13 @@ std::string process_headers(const std::string& block) {
 std::string process_math(const std::string& text) {
   std::string result = text;
 
-  try {
-    // handle block math ($$...$$)
-    std::regex block_pattern("\\$\\$([^$].*?)\\$\\$");
-    result = std::regex_replace(result, block_pattern, "\n$$\n$1\n$$\n");
+  // process multiline math blocks
+  static const std::regex block_pattern(R"(\${2}([\s\S]+?)\${2})");
+  result = std::regex_replace(result, block_pattern, "\\[$1\\]");
 
-    // handle inline math ($...$), but not if it's part of a block ($$)
-    std::regex inline_pattern("\\$([^$]+?)\\$");
-    result = std::regex_replace(result, inline_pattern, "\\($1\\)");
-
-  } catch (const std::regex_error& e) {
-    std::cout << "Regex error in process_math: " << e.what() << std::endl;
-    return text;
-  }
+  // process inline math
+  static const std::regex inline_pattern(R"(\$([^\$]+?)\$)");
+  result = std::regex_replace(result, inline_pattern, "\\($1\\)");
 
   return result;
 }
@@ -263,24 +257,28 @@ void write_index(const std::vector<Post>& posts, const Config& config) {
        << "    <meta name=\"viewport\" content=\"width=device-width, "
           "initial-scale=1.0\">\n"
        << "    <link rel=\"stylesheet\" type=\"text/css\" "
-          "href=\"styles/reset.css\" />\n"
+          "href=\"./styles/reset.css\" />\n"
        << "    <link rel=\"stylesheet\" type=\"text/css\" "
-          "href=\"styles/writingstyle.css\" />\n"
-       << "</head>\n"
+          "href=\"./styles/stylesheet.css\" />\n"
+       << "    <style>\n"
+       << "      p, ul {\n"
+       << "        text-align: left;\n"
+       << "      }\n"
+       << "    </style>\n"
+       << "</head>\n\n"
        << "<body>\n"
        << "    <div id=\"contents\">\n"
-       << "        <br><br><br>\n"
-       << "        <div id=\"title\">Writing</div>\n"
-       << "        <br><hr><br><br>\n"
-       << "        <ul>\n";
+       << "        <ul>\n"
+       << "        <p>Posts:</p>\n";
 
   for (const auto& post : posts) {
-    html << "            <li><span class=\"date\">" << post.date
-         << "</span> <a href=\"writing/" << post.out_pth.filename().string()
-         << "\">" << post.title << "</a></li>\n";
+    html << "            <p><a href=\"writing/"
+         << post.out_pth.filename().string() << "\"><u>" << post.title
+         << "</u></a></p>\n";
   }
 
-  html << "        </ul>\n"
+  html << "          <p><a href=\"./index.html\">&lt; return</a></p>"
+       << "        </ul>\n"
        << "    </div>\n"
        << "</body>\n"
        << "</html>";
