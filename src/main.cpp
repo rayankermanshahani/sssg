@@ -12,21 +12,24 @@ void print_usage() {
             << "  formatted HTML files\n"
             << "\nOptions:\n"
             << "      --root DIR        Website root directory (default: .)\n"
-            << "  -i, --input DIR       Input directory for markdown files "
-               "(default: content)\n"
-            << "  -o, --output DIR      Output directory for generated HTML "
-               "(default: writing)\n"
+            << "  -i, --input DIR       Input directory for markdown files\n"
+            << "  -o, --output DIR      Output directory for generated HTML\n"
             << "  -h, --help            Show this help message and exit\n"
             << std::endl;
 }
 Config parse_args(int argc, char* argv[]) {
   Config config;
-  config.root_dir = std::filesystem::current_path(); // default root directory
-  std::string content_dir = "content";               // default input directory
-  std::string output_dir = "writing";                // default output directory
+  // root directory defaults to current working directory
+  config.root_dir = std::filesystem::current_path();
+  std::string content_dir;
+  std::string output_dir;
+
+  if (argc == 1) { // not enough arguments
+    throw std::runtime_error("Missing required --input and --output arguments");
+  }
 
   for (int i = 1; i < argc; i++) {
-    std::string arg = argv[1];
+    std::string arg = argv[i];
 
     if (arg == "--help") {
       print_usage();
@@ -54,16 +57,15 @@ Config parse_args(int argc, char* argv[]) {
     }
   }
 
-  // set up subdirectories relative to root
-  config.content_dir = std::filesystem::absolute(config.content_dir);
-  config.output_dir = std::filesystem::absolute(config.output_dir);
-
-  if (!std::filesystem::exists(config.content_dir)) {
-    throw std::runtime_error("Input directory does not exist: " +
-                             config.content_dir.string());
+  // input and output directories must be specified
+  if (content_dir.empty()) {
+    throw std::runtime_error("Missing required --input argument");
+  }
+  if (output_dir.empty()) {
+    throw std::runtime_error("Missing required --output argument");
   }
 
-  // set up subdirectories relative to root
+  // set up input and output subdirectories relative to root
   config.content_dir = config.root_dir / content_dir;
   config.output_dir = config.root_dir / output_dir;
 
@@ -72,8 +74,9 @@ Config parse_args(int argc, char* argv[]) {
     throw std::runtime_error("Website root directory does not exist: " +
                              config.root_dir.string());
   }
+
   if (!std::filesystem::exists(config.content_dir)) {
-    throw std::runtime_error("Content directory does not exist: " +
+    throw std::runtime_error("Input directory does not exist: " +
                              config.content_dir.string());
   }
   if (!std::filesystem::exists(config.root_dir / "styles")) {
